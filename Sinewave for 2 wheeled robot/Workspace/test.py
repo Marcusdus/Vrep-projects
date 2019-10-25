@@ -2,6 +2,19 @@ import vrep
 import time
 import math
 
+def pid_yaw(base_speed,yaw_angle):
+    kp = 0.5
+    prop = kp*yaw_angle
+    motor_control(base_speed-prop,base_speed+prop)
+
+def motor_control(left_speed,right_speed):
+    returnCode=vrep.simxSetJointTargetVelocity(clientID,leftmotor,left_speed,vrep.simx_opmode_streaming)
+    returnCode=vrep.simxSetJointTargetVelocity(clientID,rightmotor,right_speed,vrep.simx_opmode_streaming)
+
+def yaw_angle():
+    orientation_val = vrep.simxGetObjectOrientation(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
+    return orientation_val[1][1]*180/math.pi
+
 vrep.simxFinish(-1) # just in case, close all opened connections
 clientID=vrep.simxStart('127.0.0.1',19999,True,True,5000,5) # Connect to V-REP
 if clientID!=-1:
@@ -35,15 +48,37 @@ returnCode=vrep.simxSetJointTargetVelocity(clientID,rightmotor,31.416/4,vrep.sim
 odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
 count=0
 
-for i in range(20):
-    odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
-    orientation_val = vrep.simxGetObjectOrientation(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
-    disp_val = math.sqrt(odometer_val[1][0]*odometer_val[1][0] + odometer_val[1][1]*odometer_val[1][1])
-    print("displacement")
-    print(disp_val)
-    print("orientation")
-    print(orientation_val[1][1]*180/math.pi)
-    time.sleep(0.5)
+prev_yaw = yaw_angle()
+
+while True:
+    count += 1
+    motor_control(10,10)
+    curr_yaw = yaw_angle()
+    error = curr_yaw-88.17
+    # pid_yaw(10,error)
+    if count>1000000:
+        break
+
+target_yaw = 45
+count = 0
+while True:
+    count += 1
+    motor_control(10,10)
+    curr_yaw = yaw_angle()
+    error = curr_yaw-target_yaw
+    pid_yaw(10,error)
+    if count>1000000:
+        break
+
+# for i in range(20):
+#     odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
+#     orientation_val = vrep.simxGetObjectOrientation(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
+#     disp_val = math.sqrt(odometer_val[1][0]*odometer_val[1][0] + odometer_val[1][1]*odometer_val[1][1])
+#     print("displacement")
+#     print(disp_val)
+#     print("orientation")
+#     print(orientation_val[1][1]*180/math.pi)
+#     time.sleep(0.5)
 
 # while count<50:
 #     time.sleep(0.1)
@@ -60,15 +95,15 @@ odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opm
     
 returnCode=vrep.simxSetJointTargetVelocity(clientID,leftmotor,31.416/40,vrep.simx_opmode_streaming)
 returnCode=vrep.simxSetJointTargetVelocity(clientID,rightmotor,-31.416/40,vrep.simx_opmode_streaming)
-for i in range(40):
-    odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
-    orientation_val = vrep.simxGetObjectOrientation(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
-    disp_val = math.sqrt(odometer_val[1][0]*odometer_val[1][0] + odometer_val[1][1]*odometer_val[1][1])
-    print("displacement")
-    print(disp_val)
-    print("orientation")
-    print(orientation_val[1][1]*180/math.pi)
-    time.sleep(0.5)
+# for i in range(40):
+#     odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
+#     orientation_val = vrep.simxGetObjectOrientation(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
+#     disp_val = math.sqrt(odometer_val[1][0]*odometer_val[1][0] + odometer_val[1][1]*odometer_val[1][1])
+#     print("displacement")
+#     print(disp_val)
+#     print("orientation")
+#     print(orientation_val[1][1]*180/math.pi)
+#     time.sleep(0.5)
 returnCode = vrep.simxStopSimulation(clientID,vrep.simx_opmode_oneshot)
 
 time.sleep(0.1)
