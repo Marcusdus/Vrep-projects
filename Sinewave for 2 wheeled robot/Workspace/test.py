@@ -34,33 +34,41 @@ returnCode=vrep.simxSetJointTargetVelocity(clientID,rightmotor,31.416/4,vrep.sim
 
 odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
 count=0
-for i in range(10):
+
+for i in range(20):
     odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
-    
+    orientation_val = vrep.simxGetObjectOrientation(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
     disp_val = math.sqrt(odometer_val[1][0]*odometer_val[1][0] + odometer_val[1][1]*odometer_val[1][1])
+    print("displacement")
     print(disp_val)
-    time.sleep(1)
-'''
-while count<50:
-    time.sleep(0.1)
-    left_sensor1 = vrep.simxReadVisionSensor(clientID, leftsensor, vrep.simx_opmode_streaming)
-    mid_sensor1 = vrep.simxReadVisionSensor(clientID, midsensor, vrep.simx_opmode_streaming)
-    right_sensor1 = vrep.simxReadVisionSensor(clientID, rightsensor, vrep.simx_opmode_streaming)
-    print(left_sensor1[1])
-    print(mid_sensor1[1])
-    print(right_sensor1[1])
-    count = count + 1
-#returnCode,position=vrep.simxGetObjectPosition(clientID,robot_handle,-1,vrep.simx_opmode_buffer)
-'''
+    print("orientation")
+    print(orientation_val[1][1]*180/math.pi)
+    time.sleep(0.5)
+
+# while count<50:
+#     time.sleep(0.1)
+#     left_sensor1 = vrep.simxReadVisionSensor(clientID, leftsensor, vrep.simx_opmode_streaming)
+#     mid_sensor1 = vrep.simxReadVisionSensor(clientID, midsensor, vrep.simx_opmode_streaming)
+#     right_sensor1 = vrep.simxReadVisionSensor(clientID, rightsensor, vrep.simx_opmode_streaming)
+#     print(left_sensor1[1])
+#     print(mid_sensor1[1])
+#     print(right_sensor1[1])
+#     count = count + 1
+# #returnCode,position=vrep.simxGetObjectPosition(clientID,robot_handle,-1,vrep.simx_opmode_buffer)
+
 odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
     
-returnCode=vrep.simxSetJointTargetVelocity(clientID,leftmotor,-31.416/4,vrep.simx_opmode_streaming)
-returnCode=vrep.simxSetJointTargetVelocity(clientID,rightmotor,-31.416/4,vrep.simx_opmode_streaming)
-for i in range(10):
+returnCode=vrep.simxSetJointTargetVelocity(clientID,leftmotor,31.416/40,vrep.simx_opmode_streaming)
+returnCode=vrep.simxSetJointTargetVelocity(clientID,rightmotor,-31.416/40,vrep.simx_opmode_streaming)
+for i in range(40):
     odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
+    orientation_val = vrep.simxGetObjectOrientation(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
     disp_val = math.sqrt(odometer_val[1][0]*odometer_val[1][0] + odometer_val[1][1]*odometer_val[1][1])
+    print("displacement")
     print(disp_val)
-    time.sleep(1)
+    print("orientation")
+    print(orientation_val[1][1]*180/math.pi)
+    time.sleep(0.5)
 returnCode = vrep.simxStopSimulation(clientID,vrep.simx_opmode_oneshot)
 
 time.sleep(0.1)
