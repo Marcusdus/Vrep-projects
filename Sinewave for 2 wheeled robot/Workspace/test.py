@@ -3,7 +3,7 @@ import time
 import math
 
 def pid_yaw(base_speed,yaw_angle):
-    kp = 0.05
+    kp = 0.1
     prop = kp*yaw_angle
     motor_control(base_speed-prop,base_speed+prop)
 
@@ -50,23 +50,37 @@ count=0
 
 prev_yaw = yaw_angle()
 def sin_wave():
+    target_yaw1 = 0
     odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
-    y = 0.5*math.sin(12.566*odometer_val[1][0])
-    target_yaw = math.tan(math.atan(math.acos(y)))*180/math.pi
-    
-        # print(target_yaw)
-    
-    curr_yaw = yaw_angle() - 90
-    if(count%1000 == 0):
-        print(target_yaw)
-    error = curr_yaw-target_yaw
-    pid_yaw(10,error)
+    y = 5*math.sin(3.141*odometer_val[1][0])
+    # print(y)
+    if y == 0:
+        y = y+0.001
+    tan_angle = ((math.pi/2)*y/5)
+    main_angle = math.cos(tan_angle)
+    if(main_angle <= 1 and main_angle >= 0):
+        targ = math.atan(main_angle)*180/math.pi
+        if(count%1000 == 0):
+            print(targ)
+        # print(odometer_val[1][0])
+        # targ = map_yaw()
+        
+            # print(target_yaw)
+        
+        curr_yaw = yaw_angle()
+        error = curr_yaw-targ
+        pid_yaw(30,error)
 
+# def map_yaw():
+#     curr = yaw_angle()
+#     curr = curr - 90
+#     if(curr>=-90 and curr<=0):
+#         target_yaw = (curr+90)/2
+#     if(curr>0 and curr<=90):
+#         target_yaw = (90-curr)/2
+#     return target_yaw
 
 count = 0
-for i in range(100):
-    temp = yaw_angle()
-    print(temp)
 while True:
     count += 1
     # motor_control(10,10)
@@ -74,10 +88,10 @@ while True:
     # error = curr_yaw-88.17
     # # pid_yaw(10,error)
     sin_wave()
-    if count>300000:
+    if count>1000000:
         break
 
-target_yaw = 45
+# target_yaw = 45
 count = 0
 # while True:
 #     count += 1
