@@ -3,7 +3,7 @@ import time
 import math
 
 def pid_yaw(base_speed,yaw_angle):
-    kp = 0.1
+    kp = 0.5
     prop = kp*yaw_angle
     motor_control(base_speed-prop,base_speed+prop)
 
@@ -15,6 +15,7 @@ def yaw_angle():
     orientation_val = vrep.simxGetObjectOrientation(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
     return orientation_val[1][1]*180/math.pi
 
+prev_sec = time.time()
 vrep.simxFinish(-1) # just in case, close all opened connections
 clientID=vrep.simxStart('127.0.0.1',19999,True,True,5000,5) # Connect to V-REP
 if clientID!=-1:
@@ -47,29 +48,32 @@ returnCode=vrep.simxSetJointTargetVelocity(clientID,rightmotor,31.416/4,vrep.sim
 
 odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
 count=0
-
+prev_sec = time.time()
 prev_yaw = yaw_angle()
 def sin_wave():
     target_yaw1 = 0
+    global prev_sec
     odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
-    y = 5*math.sin(3.141*odometer_val[1][0])
+    curr_sec = time.time()
+    y = 0.5*math.sin(12.566*odometer_val[1][0] - (curr_sec-prev_sec)*math.pi*0.001*2)
     # print(y)
     if y == 0:
         y = y+0.001
-    tan_angle = ((math.pi/2)*y/5)
+    tan_angle = ((math.pi/2)*y/0.5)
     main_angle = math.cos(tan_angle)
     if(main_angle <= 1 and main_angle >= 0):
         targ = math.atan(main_angle)*180/math.pi
+        targ = targ
         if(count%1000 == 0):
             print(targ)
         # print(odometer_val[1][0])
         # targ = map_yaw()
         
             # print(target_yaw)
-        
+        # prev_sec = curr_sec
         curr_yaw = yaw_angle()
         error = curr_yaw-targ
-        pid_yaw(30,error)
+        pid_yaw(10,error)
 
 # def map_yaw():
 #     curr = yaw_angle()
@@ -81,6 +85,9 @@ def sin_wave():
 #     return target_yaw
 
 count = 0
+for i in range(50):
+    odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
+
 while True:
     count += 1
     # motor_control(10,10)
