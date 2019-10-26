@@ -4,7 +4,7 @@ import math
 import itertools
 
 def pid_yaw(base_speed,yaw_angle):
-    kp = 0.5
+    kp = 0.0001
     prop = kp*yaw_angle
     motor_control(base_speed-prop,base_speed+prop)
 
@@ -13,7 +13,7 @@ def motor_control(left_speed,right_speed):
     returnCode=vrep.simxSetJointTargetVelocity(clientID,rightmotor,right_speed,vrep.simx_opmode_streaming)
 
 def yaw_angle():
-    orientation_val = vrep.simxGetObjectOrientation(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
+    orientation_val = vrep.simxGetObjectOrientation(clientID,body,floor,vrep.simx_opmode_continuous)
     return orientation_val[1][1]*180/math.pi
 
 prev_sec = time.time()
@@ -26,26 +26,26 @@ else:
 
 returnCode = vrep.simxStartSimulation(clientID,vrep.simx_opmode_oneshot)
 
-returnCode,leftmotor = vrep.simxGetObjectHandle(clientID,'DynamicLeftJoint',vrep.simx_opmode_blocking)
-returnCode,rightmotor = vrep.simxGetObjectHandle(clientID,'DynamicRightJoint',vrep.simx_opmode_blocking)
+returnCode,leftmotor = vrep.simxGetObjectHandle(clientID,'dr12_leftJoint_',vrep.simx_opmode_blocking)
+returnCode,rightmotor = vrep.simxGetObjectHandle(clientID,'dr12_rightJoint_',vrep.simx_opmode_blocking)
 returnCode,robot_handle = vrep.simxGetObjectHandle(clientID,'LineTracer',vrep.simx_opmode_blocking)
 returnCode,leftsensor = vrep.simxGetObjectHandle(clientID,'LeftSensor',vrep.simx_opmode_blocking)
 returnCode,midsensor = vrep.simxGetObjectHandle(clientID,'MiddleSensor',vrep.simx_opmode_blocking)
-returnCode,rightsensor = vrep.simxGetObjectHandle(clientID,'RightSensor',vrep.simx_opmode_blocking)
-returnCode,floor = vrep.simxGetObjectHandle(clientID,'DefaultFloor',vrep.simx_opmode_blocking) 
+returnCode,body = vrep.simxGetObjectHandle(clientID,'dr12_body_',vrep.simx_opmode_blocking)
+returnCode,floor = vrep.simxGetObjectHandle(clientID,'ResizableFloor_5_25',vrep.simx_opmode_blocking) 
 
 left_sensor1 = 0
 mid_sensor1 = 0
 right_sensor1 = 0
 left_sensor1 = vrep.simxReadVisionSensor(clientID, leftsensor, vrep.simx_opmode_streaming)
 mid_sensor1 = vrep.simxReadVisionSensor(clientID, midsensor, vrep.simx_opmode_streaming)
-right_sensor1 = vrep.simxReadVisionSensor(clientID, rightsensor, vrep.simx_opmode_streaming)
+# right_sensor1 = vrep.simxReadVisionSensor(clientID, rightsensor, vrep.simx_opmode_streaming)
 time.sleep(5)
 odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
     
 
-returnCode=vrep.simxSetJointTargetVelocity(clientID,leftmotor,31.416/4,vrep.simx_opmode_streaming)
-returnCode=vrep.simxSetJointTargetVelocity(clientID,rightmotor,31.416/4,vrep.simx_opmode_streaming)
+# returnCode=vrep.simxSetJointTargetVelocity(clientID,leftmotor,31.416/4,vrep.simx_opmode_streaming)
+# returnCode=vrep.simxSetJointTargetVelocity(clientID,rightmotor,31.416/4,vrep.simx_opmode_streaming)
 
 odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
 count=0
@@ -74,7 +74,7 @@ def sin_wave():
         # prev_sec = curr_sec
         curr_yaw = yaw_angle()
         error = curr_yaw-targ
-        pid_yaw(10,error)
+        pid_yaw(0.01,error)
 
 # def map_yaw():
 #     curr = yaw_angle()
@@ -94,7 +94,7 @@ def seq(start, end, step):
     return itertools.islice(itertools.count(start, step), sample_count)
 
 while True:
-    for i in seq(0,180,0.5):
+    for i in seq(0,180,5):
         odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
         main_angle1 = 45 - math.atan(math.cos((i-90)*math.pi/180))*180/math.pi
         curr_yaw = yaw_angle()
