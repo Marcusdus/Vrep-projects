@@ -55,11 +55,11 @@ def sin_wave():
     global prev_sec
     odometer_val = vrep.simxGetObjectPosition(clientID,leftmotor,floor,vrep.simx_opmode_continuous)
     curr_sec = time.time()
-    y = 0.5*math.sin(12.566*odometer_val[1][0] - (curr_sec-prev_sec)*math.pi*0.001*2)
+    y = 5*math.sin(2.856*odometer_val[1][0] - (curr_sec-prev_sec)*math.pi*0.5*2)
     # print(y)
     if y == 0:
         y = y+0.001
-    tan_angle = ((math.pi/2)*y/0.5)
+    tan_angle = ((math.pi/2)*y/5)
     main_angle = math.cos(tan_angle)
     if(main_angle <= 1 and main_angle >= 0):
         targ = math.atan(main_angle)*180/math.pi
