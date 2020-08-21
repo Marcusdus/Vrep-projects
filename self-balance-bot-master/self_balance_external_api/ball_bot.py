@@ -48,7 +48,7 @@ def balance(clientID):
         x = (sens_pos[0] - sph_pos[0])
 
         theta = float(-1*math.atan(x/(0.0001+z))*(180/3.14))
-        theta_dot = (theta)  - (theta_init)
+        theta_dot = (theta)*100.0  - (theta_init)*100.0
         theta_init = theta
 
         x_state = float(sens_pos[0])  
@@ -63,8 +63,8 @@ def balance(clientID):
         u = np.matmul(k,X) 
         
         print(theta_dot)
-        speed_1 = -u[0][0]
-        speed_2 = -u[1][0]
+        speed_1 = -0.5 * u[0][0]
+        speed_2 = -0.5 * u[1][0]
 
         #set torque here
         ret = vrep.simxSetJointTargetVelocity(clientID,motor1,speed_1,vrep.simx_opmode_oneshot)
