@@ -17,13 +17,11 @@ import math
 theta_desired,x_state_desired,theta_dot_desired,x_state_dot_desired = 0.0,0.0,0.0,0.0
 
 x_state_init,theta_init = 0.0,0.0
-prev_theta = 0.0
+
 
 speed_1,speed_2 = tuple(0 for x in range(2))
-yaw = 0.0
-theta = 0.0
-x_state = 0.0
-counter = 0
+
+
 k = np.array([[0.7071,1.12,-11.4786,-1.7710],[0.7071,1.12,-11.4786,-1.7710]])  #put the values of k here
 X = np.array([[0.0],[0.0],[0.0],[0.0]])
 u = np.array([[0.0],[0.0]])
@@ -32,62 +30,28 @@ u = np.array([[0.0],[0.0]])
 def balance(clientID):
     ret = vrep.simxStartSimulation(clientID,vrep.simx_opmode_oneshot)
     ret,battery=vrep.simxGetObjectHandle(clientID,'battery',vrep.simx_opmode_blocking)
-    ret,segway=vrep.simxGetObjectHandle(clientID,'segway',vrep.simx_opmode_blocking)
     ret,sens=vrep.simxGetObjectHandle(clientID,'stm32f4_discovery',vrep.simx_opmode_blocking)
     ret,motor1=vrep.simxGetObjectHandle(clientID,'motor_right_model',vrep.simx_opmode_blocking)
     ret,motor2=vrep.simxGetObjectHandle(clientID,'motor_left_model',vrep.simx_opmode_blocking)
-    global counter
+
     global theta_init,speed_1,speed_2
     global x_state_init
     global X,k,u
-    global x_state
     global theta_desired,x_state_desired,theta_dot_desired,x_state_dot_desired
-    global prev_theta
-    global yaw
-    global theta
-    # theta_error = 0
+    
     while(True):
         ret,sph_pos = vrep.simxGetObjectPosition(clientID,battery,-1,vrep.simx_opmode_streaming)
         ret,sens_pos = vrep.simxGetObjectPosition(clientID,sens,-1,vrep.simx_opmode_streaming)
-        ret,sens_orient = vrep.simxGetObjectOrientation(clientID,segway,-1,vrep.simx_opmode_streaming)
-
+        
         z = (sens_pos[2] - sph_pos[2])
         y = (sens_pos[1] - sph_pos[1])
         x = (sens_pos[0] - sph_pos[0])
 
-        
-    
-        yaw = sens_orient[2]
-        
         theta = float(-1*math.atan(x/(0.0001+z))*(180/3.14))
-        error = float(theta*2*(float(yaw+1.5708106756210327)/3.14))
-        if(counter > 10000):
-            print("yaw")
-            print(yaw)
-            print("before")
-            print(theta)
-            
-            print("error")
-            print(theta*2*((yaw+1.5708106756210327)/3.14))
-
-        theta = theta - error
-        if(counter > 10000):
-            print("after")
-            print(theta)
-
-        # theta = sens_orient[0]
         theta_dot = (theta)*100.0  - (theta_init)*100.0
         theta_init = theta
+
         x_state = float(sens_pos[0])  
-        if(counter > 10000):
-            print("x _ before")
-            print(x_state)
-        error = x_state*2*((yaw+1.5708106756210327)/3.14)
-        x_state = x_state - error
-        if(counter > 10000):
-            print("x _ after")
-            print(x_state)
-            counter = 0
         x_state_dot = (x_state)*100.0 - (x_state_init)*100.0 
         x_state_init = x_state
 
@@ -97,20 +61,14 @@ def balance(clientID):
         X[1][0] = x_state_dot
         
         u = np.matmul(k,X) 
-        # print(sens_pos)
-        # print(sph_pos)
-        # print("pos")
-
-        # print(theta)
-        # print("theta")
+        
+        print(theta_dot)
         speed_1 = -0.5 * u[0][0]
         speed_2 = -0.5 * u[1][0]
 
         #set torque here
         ret = vrep.simxSetJointTargetVelocity(clientID,motor1,speed_1,vrep.simx_opmode_oneshot)
         ret = vrep.simxSetJointTargetVelocity(clientID,motor2,speed_2,vrep.simx_opmode_oneshot)
-        prev_theta = theta
-        counter = counter + 1
 
 if __name__ == "__main__":
     print ('Program started')
