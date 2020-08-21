@@ -62,7 +62,7 @@ def balance(clientID):
         
         u = np.matmul(k,X) 
         
-        print(theta_dot)
+        # print(theta_dot)
         speed_1 = -0.5 * u[0][0]
         speed_2 = -0.5 * u[1][0]
 
