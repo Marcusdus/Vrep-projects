@@ -27,6 +27,7 @@ X = np.array([[0.0],[0.0],[0.0],[0.0]])
 u = np.array([[0.0],[0.0]])
 
 sign = 1
+counter = 0
 
 def balance(clientID):
     ret = vrep.simxStartSimulation(clientID,vrep.simx_opmode_oneshot)
@@ -41,12 +42,13 @@ def balance(clientID):
     global x_state_init
     global X,k,u
     global sign
+    global counter
     global theta_desired,x_state_desired,theta_dot_desired,x_state_dot_desired
     
     while(True):
         ret,sph_pos = vrep.simxGetObjectPosition(clientID,battery,-1,vrep.simx_opmode_streaming)
         ret,sens_pos = vrep.simxGetObjectPosition(clientID,sens,-1,vrep.simx_opmode_streaming)
-        ret,segway_pos = vrep.simxGetObjectPosition(clientID,segway,-1,vrep.simx_opmode_streaming)
+        ret,segway_pos = vrep.simxGetObjectOrientation(clientID,segway,-1,vrep.simx_opmode_streaming)
         
         z = (sens_pos[2] - sph_pos[2])
         y = (sens_pos[1] - sph_pos[1])
@@ -58,26 +60,30 @@ def balance(clientID):
 
         d = math.hypot(x,y)
         
-        print("yaw ", yaw)
-        print("pitch+roll ",pitch+roll)
-        
-        if(yaw < 0 and yaw > -3.14):
-            if((pitch + roll) < 0):
+        if(yaw < 0 and yaw > -180):
+            if((-pitch + roll) > 0):
                 sign = +1
-            elif((pitch + roll) > 0):
+            elif((-pitch + roll) < 0):
                 sign = -1
 
-        elif(yaw > 0 and yaw < 3.14):
-            if((pitch + roll) > 0):
+        elif(yaw > 0 and yaw < 180):
+            if((-pitch + roll) < 0):
                 sign = +1
-            elif((pitch + roll) < 0):
+            elif((-pitch + roll) > 0):
                 sign = -1
         
         else:
             pass
-        d = d*sign
+        d = -d*sign
 
-        theta = float(-1*math.atan(x/(0.0001+z))*(180/3.14))
+        theta = float(-1*math.atan(d/(0.0001+z))*(180/3.14))
+        if(counter > 10000):
+            print("yaw ", yaw)
+            print("pitch+roll ",-pitch+roll)
+            print("theta ",theta)
+            print("d ",d)
+            counter = 0
+        counter += 1
         theta_dot = (theta)*100.0  - (theta_init)*100.0
         theta_init = theta
 
@@ -92,7 +98,7 @@ def balance(clientID):
         
         u = np.matmul(k,X) 
         
-        print(theta_dot)
+        # print(theta_dot)
         speed_1 = -0.5 * u[0][0]
         speed_2 = -0.5 * u[1][0]
 
