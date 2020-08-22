@@ -26,26 +26,56 @@ k = np.array([[0.7071,1.12,-11.4786,-1.7710],[0.7071,1.12,-11.4786,-1.7710]])  #
 X = np.array([[0.0],[0.0],[0.0],[0.0]])
 u = np.array([[0.0],[0.0]])
 
+sign = 1
 
 def balance(clientID):
     ret = vrep.simxStartSimulation(clientID,vrep.simx_opmode_oneshot)
     ret,battery=vrep.simxGetObjectHandle(clientID,'battery',vrep.simx_opmode_blocking)
+    ret,segway=vrep.simxGetObjectHandle(clientID,'segway',vrep.simx_opmode_blocking)
     ret,sens=vrep.simxGetObjectHandle(clientID,'stm32f4_discovery',vrep.simx_opmode_blocking)
     ret,motor1=vrep.simxGetObjectHandle(clientID,'motor_right_model',vrep.simx_opmode_blocking)
     ret,motor2=vrep.simxGetObjectHandle(clientID,'motor_left_model',vrep.simx_opmode_blocking)
+    
 
     global theta_init,speed_1,speed_2
     global x_state_init
     global X,k,u
+    global sign
     global theta_desired,x_state_desired,theta_dot_desired,x_state_dot_desired
     
     while(True):
         ret,sph_pos = vrep.simxGetObjectPosition(clientID,battery,-1,vrep.simx_opmode_streaming)
         ret,sens_pos = vrep.simxGetObjectPosition(clientID,sens,-1,vrep.simx_opmode_streaming)
+        ret,segway_pos = vrep.simxGetObjectPosition(clientID,segway,-1,vrep.simx_opmode_streaming)
         
         z = (sens_pos[2] - sph_pos[2])
         y = (sens_pos[1] - sph_pos[1])
         x = (sens_pos[0] - sph_pos[0])
+
+        yaw = segway_pos[2]*180/math.pi
+        pitch = segway_pos[1]*180/math.pi
+        roll = segway_pos[0]*180/math.pi
+
+        d = math.hypot(x,y)
+        
+        print("yaw ", yaw)
+        print("pitch+roll ",pitch+roll)
+        
+        if(yaw < 0 and yaw > -3.14):
+            if((pitch + roll) < 0):
+                sign = +1
+            elif((pitch + roll) > 0):
+                sign = -1
+
+        elif(yaw > 0 and yaw < 3.14):
+            if((pitch + roll) > 0):
+                sign = +1
+            elif((pitch + roll) < 0):
+                sign = -1
+        
+        else:
+            pass
+        d = d*sign
 
         theta = float(-1*math.atan(x/(0.0001+z))*(180/3.14))
         theta_dot = (theta)*100.0  - (theta_init)*100.0
@@ -62,7 +92,7 @@ def balance(clientID):
         
         u = np.matmul(k,X) 
         
-        # print(theta_dot)
+        print(theta_dot)
         speed_1 = -0.5 * u[0][0]
         speed_2 = -0.5 * u[1][0]
 
@@ -80,3 +110,35 @@ if __name__ == "__main__":
     else:
         print ('Failed connecting to remote API server')
         exit(0)
+
+
+        # ret,segway_pos = vrep.simxGetObjectPosition(clientID,segway,-1,vrep.simx_opmode_streaming)
+        
+        # z = (sens_pos[2] - sph_pos[2])
+        # y = (sens_pos[1] - sph_pos[1])
+        # x = (sens_pos[0] - sph_pos[0])
+
+        # theta = float(-1*math.atan(x/(0.0001+z))*(180/3.14))
+        # theta_dot = (theta)*100.0  - (theta_init)*100.0
+        # theta_init = theta
+        # yaw = segway_pos[2]*180/math.pi
+        # pitch = segway_pos[1]*180/math.pi
+        # roll = segway_pos[0]*180/math.pi
+        
+        # z = (sens_pos[2] - sph_pos[2])
+        # y = (sens_pos[1] - sph_pos[1])
+        # x = (sens_pos[0] - sph_pos[0])
+        # d = math.hypot(x,y)
+        
+        # if(yaw < 0 and yaw > -3.14):
+        #     if((pitch + roll) < 0):
+        #         sign = +1
+        #     elif((pitch + roll) > 0):
+        #         sign = -1
+
+        # if(yaw > 0 and yaw < 3.14):
+        #     if((pitch + roll) > 0):
+        #         sign = +1
+        #     elif((pitch + roll) < 0):
+        #         sign = -1
+        # d = d*sign
