@@ -61,16 +61,16 @@ def balance(clientID):
         d = math.hypot(x,y)
         
         if(yaw < 0 and yaw > -180):
-            if((-pitch + roll) > 0):
+            if((roll >= 0 and pitch <= 0) or (roll <= 0 and pitch <= 0)):
                 sign = +1
-            elif((-pitch + roll) < 0):
+            elif((roll >= 0 and pitch >= 0) or (roll <= 0 and pitch >= 0)):
                 sign = -1
 
         elif(yaw > 0 and yaw < 180):
-            if((-pitch + roll) < 0):
-                sign = +1
-            elif((-pitch + roll) > 0):
+            if((roll >= 0 and pitch <= 0) or (roll <= 0 and pitch <= 0)):
                 sign = -1
+            elif((roll >= 0 and pitch >= 0) or (roll <= 0 and pitch >= 0)):
+                sign = +1
         
         else:
             pass
