@@ -49,7 +49,10 @@ def balance(clientID):
         ret,sph_pos = vrep.simxGetObjectPosition(clientID,battery,-1,vrep.simx_opmode_streaming)
         ret,sens_pos = vrep.simxGetObjectPosition(clientID,sens,-1,vrep.simx_opmode_streaming)
         ret,segway_pos = vrep.simxGetObjectOrientation(clientID,segway,-1,vrep.simx_opmode_streaming)
-        
+        # ret,base_mat = vrep.simxGetObjectQuaternion(clientID,segway,-1,vrep.simx_opmode_streaming)
+
+        # print(base_mat)
+
         z = (sens_pos[2] - sph_pos[2])
         y = (sens_pos[1] - sph_pos[1])
         x = (sens_pos[0] - sph_pos[0])
